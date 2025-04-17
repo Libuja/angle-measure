@@ -1,5 +1,4 @@
-# angle-measure
-<!DOCTYPE html>
+# angle-measure<!DOCTYPE html>
 <html>
 <head>
   <title>Shoulder Angle Tracker</title>
