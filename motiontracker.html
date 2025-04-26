@@ -13,6 +13,7 @@
       font-family: sans-serif;
       background: black;
       color: white;
+      touch-action: none;
     }
     canvas, video {
       position: fixed;
@@ -53,7 +54,7 @@
 <body>
   <div id="angleDisplay">Angle: <span id="angle">-</span>°</div>
   <div id="controls">
-    <button onclick="startTracking()">Start Tracking</button>
+    <button id="startButton">Start Tracking</button>
     <button onclick="stopTracking()">Stop Tracking</button>
   </div>
   
@@ -74,16 +75,6 @@
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-
-    function calculateAngle(A, B, C) {
-      const AB = [B.x - A.x, B.y - A.y];
-      const CB = [B.x - C.x, B.y - C.y];
-      const dot = AB[0] * CB[0] + AB[1] * CB[1];
-      const magAB = Math.hypot(...AB);
-      const magCB = Math.hypot(...CB);
-      const angle = Math.acos(dot / (magAB * magCB)) * (180 / Math.PI);
-      return Math.round(angle);
-    }
 
     const pose = new Pose({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4/${file}` });
     pose.setOptions({
@@ -154,6 +145,21 @@
     function stopTracking() {
       tracking = false;
     }
+
+    function calculateAngle(A, B, C) {
+      const AB = [B.x - A.x, B.y - A.y];
+      const CB = [B.x - C.x, B.y - C.y];
+      const dot = AB[0] * CB[0] + AB[1] * CB[1];
+      const magAB = Math.hypot(...AB);
+      const magCB = Math.hypot(...CB);
+      const angle = Math.acos(dot / (magAB * magCB)) * (180 / Math.PI);
+      return Math.round(angle);
+    }
+
+    document.getElementById('startButton').addEventListener('click', async () => {
+      await video.play(); // Important for mobile to trigger video play
+      startTracking();
+    });
   </script>
 </body>
 </html>
