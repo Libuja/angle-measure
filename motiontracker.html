@@ -6,17 +6,17 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4/pose.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
   <style>
-    html, body {
+    body, html {
       margin: 0;
       padding: 0;
+      height: 100%;
       overflow: hidden;
       font-family: sans-serif;
-      background: black;
+      background-color: black;
       color: white;
-      touch-action: none;
     }
-    canvas, video {
-      position: fixed;
+    video, canvas {
+      position: absolute;
       top: 0;
       left: 0;
       width: 100vw;
@@ -30,51 +30,23 @@
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0,0,0,0.6);
-      padding: 15px 30px;
-      border-radius: 12px;
+      padding: 10px 20px;
       font-size: 24px;
       z-index: 1;
     }
-    #controls {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 0 10px;
-      cursor: pointer;
-    }
   </style>
 </head>
-
 <body>
   <div id="angleDisplay">Angle: <span id="angle">-</span>°</div>
-  <div id="controls">
-    <button id="startButton">Start Tracking</button>
-    <button onclick="stopTracking()">Stop Tracking</button>
-  </div>
-  
   <video id="inputVideo" autoplay muted playsinline></video>
   <canvas id="outputCanvas"></canvas>
 
   <script>
     const video = document.getElementById('inputVideo');
     const canvas = document.getElementById('outputCanvas');
-    const ctx = canvas.getContext('2d');
     const angleSpan = document.getElementById('angle');
     let tracking = false;
     let camera;
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
 
     const pose = new Pose({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4/${file}` });
     pose.setOptions({
@@ -86,6 +58,7 @@
     });
 
     pose.onResults(results => {
+      const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
@@ -126,6 +99,9 @@
       ctx.fillStyle = 'white';
       ctx.font = '24px sans-serif';
       ctx.fillText(`${angle}°`, midX, midY);
+
+      // Send the angle to App Inventor (via postMessage or Web Viewer Eval)
+      window.postMessage(angle, '*');
     });
 
     function startTracking() {
@@ -156,9 +132,10 @@
       return Math.round(angle);
     }
 
-    document.getElementById('startButton').addEventListener('click', async () => {
-      await video.play(); // Important for mobile to trigger video play
-      startTracking();
+    window.addEventListener('message', function(event) {
+      if (event.origin === '*') {
+        angleSpan.textContent = event.data;
+      }
     });
   </script>
 </body>
